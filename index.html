@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register your copy</title>
+<style>
+:root{--bg:#f2f4f7;--card:#fff;--ink:#14202e;--mute:#5b6b7d;--line:#cfd7e1;--accent:#1f5fbf;--ok:#17714a;--bad:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#10161d;--card:#18212b;--ink:#e8edf3;--mute:#97a6b7;--line:#2c3947;--accent:#6ea3f0;--ok:#4cc38a;--bad:#ff8a80}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+main{width:100%;max-width:440px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:28px}
+h1{margin:0 0 6px;font-size:1.4rem}
+p{margin:0 0 20px;color:var(--mute);line-height:1.5}
+input{width:100%;padding:14px;font:600 1.05rem ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;text-align:center;border:1.5px solid var(--line);border-radius:8px;background:transparent;color:var(--ink)}
+input:focus{outline:3px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+button,a.dl{display:block;width:100%;margin-top:12px;padding:14px;border:0;border-radius:8px;background:var(--accent);color:#fff;font:600 1rem system-ui,sans-serif;text-align:center;text-decoration:none;cursor:pointer}
+@media (prefers-color-scheme:dark){button,a.dl{color:#0b1220}}
+#msg{min-height:1.4em;margin-top:12px;font-size:.95rem}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>Register your copy</h1>
+  <p>Enter the 25-character key you received.</p>
+  <input id="key" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="29" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" aria-label="Registration key">
+  <button id="go" type="button">Register</button>
+  <div id="msg" role="status" aria-live="polite"></div>
+  <a id="dl" class="dl" href="YOUR_DOWNLOAD_LINK_HERE" download hidden>Download</a>
+</main>
+<script>
+// SHA-256 hashes of the 50 valid keys (the keys themselves are not stored in this file)
+const HASHES = new Set([
+"50a61e6c2609fb24320613487ab181d75e9db1f311f068b7caa3bd900b825a57",
+"922aa6a9fe58fed19a472194fe67e5fece7fbb28c0918ce462c4f5031f0eb0be",
+"30fe5639e08e4a97e4fa579cfc896d1591039df1cdec5a0e3f650618018e7427",
+"0b37a9791cdb221a219b0c71861a4ff132bca946de6ccba7cb19af73c3ab1636",
+"64489225f69c16d0ca36ebc0a74731b29e173444c74d723d97152b71fa3d4668",
+"305a68304a7c19a422cc3000fac58d00bb6dc3029a4b3a151a5356de0d6defaa",
+"48ae6dfe2f5d99fd16f06812f394b6e7cd3ace5f6a5f16ca5963362bf3857bb5",
+"e8887cb84835f6a9f285313f3e236aa638608477c5eb377f69abddd2c07ecad0",
+"8be05b807344f96d5c41a3dca5a2d758e55957e237aca63d9af7262e993ec54b",
+"0ff41c78a1f51a13a691ea01905122da49083e894f1d2d2e23afbd3592801341",
+"6e04c737687abb2621eec5c6533cb2c856747b6803b2562b68702337c80e9a17",
+"754799b85f1a5be6c3f1e0d088e2458aac67c5f4256483b6a500c975e619729b",
+"03e7ecb1cacc26a278cc37d2d084589a8f042f98723b132922759c22012c822a",
+"c3d648c036596e0a2cbec71be3698a20430faf3ab541d272e371dc85f90d02af",
+"cc0fea24529c6c8a9d9447f39e96dce951bb0a5aad36a457c3bd61c98e08d982",
+"8a4d989b2e20e126716364b753adb3cd6c8cc330107189632d5947c19fd1ed07",
+"5edfab62ad8ca5aa1087656eefe487406a37182c7edc645db9b61794f960a9d5",
+"3cf366e3acb669c0a2977bf41a892b03d607ec06821046ea389069b708fc803a",
+"ace4646951b0b0847e28d834e286c6b5d2f5f2bf20f4ea5c6b4bfbf1535d8216",
+"6b54ce3ec6add6e675e29e03f83831ef8f350cd67ee79334110c4f976eb9bb21",
+"dfde0586184bbb3d70de64825c69823d2bde253125787cd0ed5d9cbe43c9c3ab",
+"e2304eff65dd732960dc6402417aea74c73120f4e8d2eb79d37aad2cdf943b83",
+"928d0179e9fa8b9ae451eec2d4d6d81af59996f6e17733e400a75f5185cfd328",
+"9aa7ea62755dd5b352e5a34548e2a652044695ac5c91e610521989aa18323f70",
+"92bc1dbddd7766db6155e7867eb9be9f6df6a526e0edff7497e8a2adfd2b2240",
+"625ac914e385aec5fdb768154d3dd4b5023ba72caa8e5adfc6bb0889b113456b",
+"85ac2725c62efa3dc284a415f7de13a097769ef59f11db0b1530f91aaea272dc",
+"5d05e6c8e23e22ffa12235854f15079bc03275510a19187f48b45af8291c81ef",
+"f0611e12df38800ce8d6cf9a2c2347791b39580e23f01acfb0ac9c9126e1ab2a",
+"a4f493dd620ec8b0312b1801a2c15947dd1fe7987813a0bae1134a3647b898d0",
+"f82c9811dbdfa89194b46e5615a55722d1452e88b01ae7dd0f21f4557fd2e488",
+"958631b4cafde0a7229aa3cb1ae6efe58036f26d43f3884ff689b30bb9a76ddb",
+"6f724e65823a158e6b7a4b522a65250f20ea138594023cd6dc851be9fa0768d2",
+"1c636981ca89437c6353214defbf53ed8a9efa917e00fc1fae93ec90a1cf7335",
+"bd5ba94d874b6285a3801109e0a885b4f7207132c17e60e57be2ead3d740cefd",
+"6ebed677276a7280ee5542da291ddbce085af6bd07aca2c8ca20d977065a7233",
+"ef2c174741a347a8f0ff5902ce541ab046b2fb4a345ed245162cf90e77638cb0",
+"addcabc669bd7c362487ca9e0d4e8a365a2821f576d6a1c6c1ba6c7a47eab7fd",
+"ee6b86b7de479e1fc589f7f309580c1d4d0e51d65b5a11f4b76181f4377244a4",
+"8f47427957cd6b3d5414505f14990022b579aa2aced0aad7406f12d8c250d32e",
+"f8f5376da3862ee14c5eeebf25fdac528826f1f537ee2f0a2eed487663c6ca6c",
+"10181fd4bcbb5938824064fb2a54bec8a71f3d53dd5e4b93a383c5d41df47b57",
+"05dae88752d7109ebb33a50cc68dec3bae7acbe04a2520eb33006ace1329d387",
+"29ec6cf46908ac2813d25661b1ae63b6adeecd63dd69e0292b408a870997356b",
+"c2fa43b59e685dff618acae12fa92424532dd241a711a47713cfb79efdd5f4df",
+"92fc8d2c4a5aa24380ab5e2b1aeb36d62844f7f2fbdcec546cf3170c75fe9778",
+"f9535b9b2ec47621931c20143ceda72822df18b065bd27e2cfd71f51bc0b3759",
+"093974bed6d7466d69bffe5a338de7d04f92c63003c8ea6ebcb2327425db198c",
+"499356a82bcda7be072ad6f765c11a5536af95b87a255fd578c57eece56fb65b",
+"e1d9215e15e7b3d7dbd4b60daf0fa6f834cf1268e86aa3577a769418a190783e"
+]);
+const input=document.getElementById('key'), msg=document.getElementById('msg'),
+      dl=document.getElementById('dl'), go=document.getElementById('go');
+
+input.addEventListener('input',()=>{
+  const raw=input.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,25);
+  input.value=raw.match(/.{1,5}/g)?.join('-')||'';
+  dl.hidden=true; msg.textContent='';
+});
+async function sha256(s){
+  const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function check(){
+  const k=input.value;
+  if(k.length!==29){msg.className='bad';msg.textContent='Keys have 25 characters in 5 groups of 5.';return;}
+  if(HASHES.has(await sha256(k))){
+    msg.className='ok';msg.textContent='Key accepted. Your download is ready.';dl.hidden=false;
+  }else{
+    msg.className='bad';msg.textContent='That key is not valid. Check it and try again.';dl.hidden=true;
+  }
+}
+go.addEventListener('click',check);
+input.addEventListener('keydown',e=>{if(e.key==='Enter')check();});
+</script>
+</body>
+</html>
